@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Higher or Lower: Guess the Bigger Number</title>
+<meta name="description" content="Higher or Lower: guess which is bigger. Countries, landmarks, history, cars, food, football and cricket. How long can your streak go?">
+<meta property="og:title" content="Higher or Lower: Can you beat my streak?">
+<meta property="og:description" content="600+ surprising comparisons across 7 categories. Quick to play, impossible to stop.">
+<meta property="og:type" content="website">
+<meta name="theme-color" content="#120d1f">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔥</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#120d1f; --card:#1e1733; --card2:#271d44; --ink:#f6f2ff; --mute:#a99cc9;
+    --hi:#ff6b3d; --lo:#3dc8ff; --good:#33d17a; --bad:#ff4d6d; --gold:#ffd23f;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  html,body{height:100%}
+  body{
+    font-family:"Bricolage Grotesque",system-ui,sans-serif;background:var(--bg);color:var(--ink);
+    background-image:radial-gradient(circle at 15% 0%,#3b1f6b 0,transparent 45%),radial-gradient(circle at 100% 100%,#5a1f3d 0,transparent 45%);
+    background-attachment:fixed;display:flex;justify-content:center;
+  }
+  .app{width:100%;max-width:460px;min-height:100%;padding:20px 16px 28px;display:flex;flex-direction:column}
+  .screen{display:none;flex:1;flex-direction:column}
+  .screen.on{display:flex}
+  h1{font-size:44px;line-height:.95;font-weight:800;letter-spacing:-1.5px;text-align:center;margin:18px 0 8px}
+  h1 .h{color:var(--hi)} h1 .l{color:var(--lo)}
+  .tag{text-align:center;color:var(--mute);font-size:16px;margin-bottom:26px}
+  .cats{display:grid;gap:12px}
+  .cat{
+    display:flex;align-items:center;gap:14px;width:100%;padding:16px;border-radius:18px;border:1px solid #ffffff14;
+    background:var(--card);color:var(--ink);font:inherit;text-align:left;cursor:pointer;transition:transform .12s,background .2s;
+  }
+  .cat:active{transform:scale(.97)} .cat:hover{background:var(--card2)}
+  .cat .e{font-size:34px;width:48px;text-align:center}
+  .cat b{display:block;font-size:19px;font-weight:700}
+  .cat small{color:var(--mute);font-size:14px}
+  .cat .best{margin-left:auto;font-size:13px;color:var(--gold);white-space:nowrap}
+  .foot{margin-top:auto;padding-top:22px;text-align:center;color:var(--mute);font-size:12px}
+
+  /* game */
+  .bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+  .back{background:none;border:0;color:var(--mute);font:inherit;font-size:15px;cursor:pointer;padding:6px 0}
+  .scores{display:flex;gap:14px;font-size:15px;color:var(--mute)}
+  .scores b{color:var(--ink);font-size:20px}
+  .stage{flex:1;display:flex;flex-direction:column;gap:12px;position:relative}
+  .card{
+    flex:1;min-height:200px;border-radius:24px;padding:20px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;
+    background:var(--card);border:1px solid #ffffff12;position:relative;overflow:hidden;transition:background .25s,border-color .25s;
+  }
+  .card .emo{font-size:58px;line-height:1;margin-bottom:10px}
+  .card .name{font-size:26px;font-weight:800;line-height:1.1;letter-spacing:-.4px}
+  .card .sub{color:var(--mute);font-size:14px;margin-top:6px}
+  .card .val{font-size:34px;font-weight:800;margin-top:10px;color:var(--gold);letter-spacing:-.5px;min-height:40px}
+  .card.good{background:#163a2a;border-color:var(--good)}
+  .card.bad{background:#3d1624;border-color:var(--bad)}
+  .vs{
+    position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:3;width:54px;height:54px;border-radius:50%;
+    background:var(--ink);color:var(--bg);display:grid;place-items:center;font-weight:800;font-size:18px;box-shadow:0 0 0 6px var(--bg);transition:background .25s,transform .25s;
+  }
+  .vs.good{background:var(--good);transform:translate(-50%,-50%) scale(1.15)}
+  .vs.bad{background:var(--bad);transform:translate(-50%,-50%) scale(1.15)}
+  .q{font-size:15px;color:var(--mute);margin:8px 0 12px}
+  .btns{display:flex;gap:10px;width:100%;max-width:320px}
+  .btn{
+    flex:1;padding:14px 10px;border-radius:14px;border:0;font:inherit;font-size:18px;font-weight:800;cursor:pointer;color:#fff;transition:transform .1s,opacity .2s;
+  }
+  .btn:active{transform:scale(.95)}
+  .btn.h{background:var(--hi)} .btn.l{background:var(--lo);color:#06222e}
+  .btn:disabled{opacity:.35}
+  .slide-in{animation:slideIn .35s ease-out}
+  @keyframes slideIn{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:none}}
+  .pop{animation:pop .4s ease-out}
+  @keyframes pop{0%{transform:scale(1)}40%{transform:scale(1.25)}100%{transform:scale(1)}}
+  .toast{
+    position:fixed;left:50%;top:18%;transform:translateX(-50%) scale(.8);opacity:0;pointer-events:none;z-index:9;
+    font-size:28px;font-weight:800;color:var(--gold);text-shadow:0 4px 20px #000;transition:all .3s;
+  }
+  .toast.on{opacity:1;transform:translateX(-50%) scale(1)}
+
+  /* over */
+  .over{justify-content:center;text-align:center;gap:6px}
+  .over .big{font-size:96px;font-weight:800;line-height:1;color:var(--gold)}
+  .over .lbl{color:var(--mute);font-size:16px}
+  .over .verdict{font-size:24px;font-weight:800;margin:14px 0 4px}
+  .over .newbest{color:var(--good);font-weight:700;min-height:22px}
+  .reveal{background:var(--card);border-radius:16px;padding:14px;margin:16px 0;font-size:15px;color:var(--mute);line-height:1.4}
+  .reveal b{color:var(--ink)}
+  .grid{font-size:22px;letter-spacing:2px;margin:6px 0}
+  .act{display:grid;gap:10px;margin-top:8px}
+  .act .btn{width:100%;font-size:18px}
+  .btn.share{background:linear-gradient(90deg,var(--hi),#ff3d8b)}
+  .btn.ghost{background:var(--card);color:var(--ink);border:1px solid #ffffff1c}
+  .copybox{display:none;width:100%;margin-top:8px;padding:10px;border-radius:12px;background:#0c0816;color:var(--ink);border:1px solid #ffffff22;font:inherit;font-size:13px;resize:none}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- HOME -->
+  <section class="screen on" id="home">
+    <h1><span class="h">Higher</span><br>or <span class="l">Lower</span></h1>
+    <p class="tag">Pick a category. Guess right and keep your streak going.</p>
+    <div class="cats" id="cats"></div>
+    <p class="foot">Numbers are approximate, from public sources.</p>
+  </section>
+
+  <!-- GAME -->
+  <section class="screen" id="game">
+    <div class="bar">
+      <button class="back" id="quit">← Categories</button>
+      <div class="scores"><span>Score <b id="score">0</b></span><span>Best <b id="best">0</b></span></div>
+    </div>
+    <div class="stage">
+      <div class="card" id="top">
+        <div class="emo" id="tEmo"></div>
+        <div class="name" id="tName"></div>
+        <div class="sub" id="tSub"></div>
+        <div class="val" id="tVal"></div>
+      </div>
+      <div class="vs" id="vs">VS</div>
+      <div class="card" id="bot">
+        <div class="emo" id="bEmo"></div>
+        <div class="name" id="bName"></div>
+        <div class="val" id="bVal"></div>
+        <div class="q" id="bQ"></div>
+        <div class="btns">
+          <button class="btn h" id="hiBtn">Higher ▲</button>
+          <button class="btn l" id="loBtn">Lower ▼</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- GAME OVER -->
+  <section class="screen over" id="over">
+    <div class="lbl">Your streak</div>
+    <div class="big" id="oScore">0</div>
+    <div class="verdict" id="oVerdict"></div>
+    <div class="newbest" id="oBest"></div>
+    <div class="grid" id="oGrid"></div>
+    <div class="reveal" id="oReveal"></div>
+    <div class="act">
+      <button class="btn share" id="shareBtn">Copy result to share</button>
+      <textarea class="copybox" id="copybox" rows="4" readonly></textarea>
+      <button class="btn h" id="againBtn">Play again</button>
+      <button class="btn ghost" id="homeBtn">Change category</button>
+    </div>
+  </section>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const fmtPop = v => v >= 1000 ? (v/1000).toFixed(2).replace(/\.?0+$/,'') + ' billion'
+                 : v >= 1 ? (v % 1 ? v.toFixed(1) : v) + ' million'
+                 : v >= 0.001 ? Math.round(v*1000) + ' thousand'
+                 : Math.round(v*1e6) + ' people';
+const fmtYear = (v, it) => (it && it.c ? 'c. ' : '') + (v < 0 ? (-v) + ' BC' : v);
+
+const CATS = {
+  pop: {
+    title:'Countries', emoji:'🌍', desc:'Which has more people?',
+    hi:'More ▲', lo:'Fewer ▼', q:n=>`has more or fewer people than ${n}?`, sub:'people live here',
+    fmt:fmtPop, from:'zero',
+    items:[
+      ['India','🇮🇳',1451],['China','🇨🇳',1419],['United States','🇺🇸',345],['Indonesia','🇮🇩',283],['Pakistan','🇵🇰',251],
+      ['Nigeria','🇳🇬',233],['Brazil','🇧🇷',212],['Bangladesh','🇧🇩',174],['Russia','🇷🇺',144],['Ethiopia','🇪🇹',132],
+      ['Mexico','🇲🇽',131],['Japan','🇯🇵',124],['Egypt','🇪🇬',116],['Philippines','🇵🇭',115],['DR Congo','🇨🇩',109],
+      ['Vietnam','🇻🇳',101],['Iran','🇮🇷',91],['Turkey','🇹🇷',87],['Germany','🇩🇪',84],['Thailand','🇹🇭',72],
+      ['United Kingdom','🇬🇧',69],['France','🇫🇷',66],['South Africa','🇿🇦',64],['Italy','🇮🇹',59],['Kenya','🇰🇪',56],
+      ['Colombia','🇨🇴',53],['South Korea','🇰🇷',52],['Spain','🇪🇸',48],['Argentina','🇦🇷',46],['Canada','🇨🇦',40],
+      ['Saudi Arabia','🇸🇦',34],['Nepal','🇳🇵',29],['Australia','🇦🇺',27],['Sri Lanka','🇱🇰',23],['Netherlands','🇳🇱',18],
+      ['UAE','🇦🇪',11],['Sweden','🇸🇪',10.6],['Portugal','🇵🇹',10.4],['Israel','🇮🇱',9.4],['Switzerland','🇨🇭',8.9],
+      ['Singapore','🇸🇬',5.9],['Norway','🇳🇴',5.6],['Ireland','🇮🇪',5.3],['New Zealand','🇳🇿',5.2],['Mongolia','🇲🇳',3.5],
+      ['Qatar','🇶🇦',3.0],['Fiji','🇫🇯',0.93],['Bhutan','🇧🇹',0.79],['Maldives','🇲🇻',0.53],['Iceland','🇮🇸',0.39],
+      ["Afghanistan", "🇦🇫", 42],
+      ["Algeria", "🇩🇿", 47],
+      ["Angola", "🇦🇴", 37],
+      ["Austria", "🇦🇹", 9.1],
+      ["Azerbaijan", "🇦🇿", 10.3],
+      ["Belarus", "🇧🇾", 9.1],
+      ["Belgium", "🇧🇪", 11.8],
+      ["Bolivia", "🇧🇴", 12.4],
+      ["Bulgaria", "🇧🇬", 6.4],
+      ["Cambodia", "🇰🇭", 17.6],
+      ["Cameroon", "🇨🇲", 29],
+      ["Chile", "🇨🇱", 19.8],
+      ["Costa Rica", "🇨🇷", 5.1],
+      ["Croatia", "🇭🇷", 3.9],
+      ["Cuba", "🇨🇺", 11],
+      ["Czechia", "🇨🇿", 10.7],
+      ["Denmark", "🇩🇰", 6.0],
+      ["Ecuador", "🇪🇨", 18],
+      ["Finland", "🇫🇮", 5.6],
+      ["Ghana", "🇬🇭", 34],
+      ["Greece", "🇬🇷", 10.0],
+      ["Guatemala", "🇬🇹", 18.4],
+      ["Hungary", "🇭🇺", 9.7],
+      ["Iraq", "🇮🇶", 46],
+      ["Jamaica", "🇯🇲", 2.8],
+      ["Jordan", "🇯🇴", 11.5],
+      ["Kazakhstan", "🇰🇿", 20.6],
+      ["Kuwait", "🇰🇼", 4.9],
+      ["Laos", "🇱🇦", 7.8],
+      ["Lebanon", "🇱🇧", 5.8],
+      ["Madagascar", "🇲🇬", 31.9],
+      ["Malaysia", "🇲🇾", 35.6],
+      ["Mali", "🇲🇱", 24.5],
+      ["Morocco", "🇲🇦", 38],
+      ["Mozambique", "🇲🇿", 34.6],
+      ["Myanmar", "🇲🇲", 54.5],
+      ["North Korea", "🇰🇵", 26.5],
+      ["Oman", "🇴🇲", 5.3],
+      ["Panama", "🇵🇦", 4.5],
+      ["Peru", "🇵🇪", 34.2],
+      ["Poland", "🇵🇱", 38.5],
+      ["Romania", "🇷🇴", 19],
+      ["Rwanda", "🇷🇼", 14.3],
+      ["Senegal", "🇸🇳", 18.5],
+      ["Serbia", "🇷🇸", 6.7],
+      ["Somalia", "🇸🇴", 19],
+      ["Sudan", "🇸🇩", 50.4],
+      ["Syria", "🇸🇾", 24.7],
+      ["Taiwan", "🇹🇼", 23.2],
+      ["Tanzania", "🇹🇿", 68.6],
+      ["Tunisia", "🇹🇳", 12.3],
+      ["Uganda", "🇺🇬", 50],
+      ["Ukraine", "🇺🇦", 38],
+      ["Uruguay", "🇺🇾", 3.4],
+      ["Uzbekistan", "🇺🇿", 36.4],
+      ["Venezuela", "🇻🇪", 28.4],
+      ["Yemen", "🇾🇪", 40.6],
+      ["Zambia", "🇿🇲", 21.3],
+      ["Zimbabwe", "🇿🇼", 16.6],
+      ["Haiti", "🇭🇹", 11.8],
+      ["Honduras", "🇭🇳", 10.8],
+      ["Paraguay", "🇵🇾", 6.9],
+      ["Luxembourg", "🇱🇺", 0.67],
+      ["Malta", "🇲🇹", 0.54],
+      ["Monaco", "🇲🇨", 0.038],
+      ["Vatican City", "🇻🇦", 0.0005],
+      ["San Marino", "🇸🇲", 0.034],
+      ["Liechtenstein", "🇱🇮", 0.04],
+      ["Tuvalu", "🇹🇻", 0.0099],
+      ["Brunei", "🇧🇳", 0.46],
+      ["Cyprus", "🇨🇾", 1.4],
+      ["Estonia", "🇪🇪", 1.37],
+      ["Latvia", "🇱🇻", 1.87],
+      ["Lithuania", "🇱🇹", 2.87],
+      ["Slovenia", "🇸🇮", 2.1],
+      ["Slovakia", "🇸🇰", 5.5],
+      ["Bahrain", "🇧🇭", 1.6],
+      ["Armenia", "🇦🇲", 2.9],
+      ["Georgia", "🇬🇪", 3.8],
+      ["Albania", "🇦🇱", 2.8],
+      ["Trinidad and Tobago", "🇹🇹", 1.5],
+      ["Papua New Guinea", "🇵🇬", 10.6],
+      ["North Macedonia", "🇲🇰", 1.8],
+      ["Bosnia and Herzegovina", "🇧🇦", 3.2],
+      ["Kyrgyzstan", "🇰🇬", 7.2],
+      ["Tajikistan", "🇹🇯", 10.6],
+      ["Turkmenistan", "🇹🇲", 7.5],
+      ["Libya", "🇱🇾", 7.4],
+      ["Botswana", "🇧🇼", 2.5],
+      ["Namibia", "🇳🇦", 3.0],
+      ["Côte d'Ivoire", "🇨🇮", 31.9],
+      ["Burkina Faso", "🇧🇫", 23.5],
+      ["Niger", "🇳🇪", 27],
+      ["Chad", "🇹🇩", 20.3],
+      ["South Sudan", "🇸🇸", 11.9],
+      ["Benin", "🇧🇯", 14.5],
+      ["Togo", "🇹🇬", 9.5],
+      ["Sierra Leone", "🇸🇱", 8.6],
+      ["Liberia", "🇱🇷", 5.6],
+      ["Malawi", "🇲🇼", 21.7],
+      ["Dominican Republic", "🇩🇴", 11.4],
+      ["El Salvador", "🇸🇻", 6.3],
+      ["Nicaragua", "🇳🇮", 7.0],
+      ["Timor-Leste", "🇹🇱", 1.4],
+      ["Seychelles", "🇸🇨", 0.13],
+      ["Andorra", "🇦🇩", 0.081],
+      ["Palau", "🇵🇼", 0.018],
+      ["Nauru", "🇳🇷", 0.012]
+    ]
+  },
+  tall: {
+    title:'Landmarks', emoji:'🗼', desc:'Which is taller?',
+    hi:'Taller ▲', lo:'Shorter ▼', q:n=>`is taller or shorter than ${n}?`, sub:'tall',
+    fmt:v=>v+' m', from:'zero',
+    items:[
+      ['Burj Khalifa','🏙️',828],['Tokyo Skytree','🗼',634],['Shanghai Tower','🌆',632],['CN Tower','🇨🇦',553],
+      ['Petronas Towers','🏢',452],['Empire State Building','🗽',443],['Tokyo Tower','🗼',333],['Eiffel Tower','🇫🇷',330],
+      ['Golden Gate Bridge (towers)','🌉',227],['Space Needle','🛸',184],['Statue of Unity','🇮🇳',182],['Washington Monument','🇺🇸',169],
+      ['Great Pyramid of Giza','🔺',139],['St. Peter\'s Basilica','⛪',137],['Big Ben (Elizabeth Tower)','🕰️',96],
+      ['Statue of Liberty (with base)','🗽',93],['Qutub Minar','🇮🇳',73],['Taj Mahal','🕌',73],['Sydney Opera House','🎭',65],
+      ['Leaning Tower of Pisa','🇮🇹',56],['Niagara Falls (Horseshoe)','💦',51],['Arc de Triomphe','🇫🇷',50],['Colosseum','🏟️',48],
+      ['Christ the Redeemer (with base)','🇧🇷',38],['Gateway of India','🇮🇳',26],['Angel Falls','🏞️',979],
+      ["Merdeka 118", "🇲🇾", 679],
+      ["Lotte World Tower", "🇰🇷", 555],
+      ["One World Trade Center", "🇺🇸", 541],
+      ["Taipei 101", "🇹🇼", 508],
+      ["Ping An Finance Centre", "🇨🇳", 599],
+      ["Abraj Al-Bait Clock Tower", "🕋", 601],
+      ["Willis Tower", "🇺🇸", 442],
+      ["Ostankino Tower", "🇷🇺", 540],
+      ["Canton Tower", "🇨🇳", 604],
+      ["Oriental Pearl Tower", "🇨🇳", 468],
+      ["Burj Al Arab", "⛵", 321],
+      ["Chrysler Building", "🇺🇸", 319],
+      ["The Shard", "🇬🇧", 310],
+      ["Gateway Arch", "🌈", 192],
+      ["Sky Tower (Auckland)", "🇳🇿", 328],
+      ["Berlin TV Tower", "🇩🇪", 368],
+      ["Milad Tower", "🇮🇷", 435],
+      ["Kuala Lumpur Tower", "🇲🇾", 421],
+      ["Abeno Harukas", "🇯🇵", 300],
+      ["Yokohama Landmark Tower", "🇯🇵", 296],
+      ["Tokyo Metropolitan Govt. Building", "🇯🇵", 243],
+      ["Nagoya TV Tower", "🇯🇵", 180],
+      ["Himeji Castle (with base)", "🏯", 46],
+      ["Pyramid of Khafre", "🔺", 136],
+      ["Cologne Cathedral", "⛪", 157],
+      ["Ulm Minster", "⛪", 162],
+      ["St Paul's Cathedral", "⛪", 111],
+      ["Brandenburg Gate", "🇩🇪", 26],
+      ["Mount Rushmore (faces)", "🗿", 18],
+      ["Tallest Easter Island moai", "🗿", 10],
+      ["Stonehenge (tallest stone)", "🪨", 7],
+      ["Parthenon", "🏛️", 14],
+      ["Lincoln Memorial", "🇺🇸", 30],
+      ["Hollywood Sign (letters)", "🎬", 14],
+      ["Tower Bridge", "🌉", 65],
+      ["London Eye", "🎡", 135],
+      ["Singapore Flyer", "🎡", 165],
+      ["Ushiku Daibutsu (with base)", "🙏", 120],
+      ["Great Sphinx of Giza", "🦁", 20],
+      ["Chichén Itzá pyramid", "🇲🇽", 30],
+      ["Angkor Wat (central tower)", "🇰🇭", 65],
+      ["Victoria Falls", "💦", 108],
+      ["Tugela Falls", "🏞️", 948],
+      ["Kegon Falls", "🇯🇵", 97],
+      ["Mount Everest", "🏔️", 8849],
+      ["Mount Fuji", "🗻", 3776],
+      ["Table Mountain", "🇿🇦", 1085],
+      ["Uluru (above the plain)", "🪨", 348],
+      ["Sugarloaf Mountain", "🇧🇷", 396],
+      ["Matterhorn", "🏔️", 4478],
+      ["Mount Kilimanjaro", "🌋", 5895],
+      ["Mont Blanc", "🏔️", 4806]
+    ]
+  },
+  year: {
+    title:'History', emoji:'⏳', desc:'Which happened later?',
+    hi:'Later ▲', lo:'Earlier ▼', q:n=>`happened later or earlier than ${n}?`, sub:'',
+    fmt:fmtYear, from:'left',
+    items:[
+      ['Great Pyramid of Giza built','🔺',-2560,1],['Last woolly mammoths die out','🦣',-2000,1],['Rome founded (legend)','🏛️',-753,1],
+      ['Cleopatra born','👑',-69],['Oxford University starts teaching','🎓',1096,1],['Aztec city Tenochtitlan founded','🌋',1325],
+      ['Taj Mahal construction begins','🕌',1632],['Harvard founded','🎓',1636],['First lighter invented','🔥',1823],
+      ['Friction match invented','🧯',1826],['Fax machine patented','📠',1843],['Coca-Cola invented','🥤',1886],
+      ['Nintendo founded','🎴',1889],['Eiffel Tower completed','🇫🇷',1889],['Telephone patented','☎️',1876],
+      ['Edison\'s light bulb','💡',1879],['Titanic sinks','🚢',1912],['Sliced bread first sold','🍞',1928],
+      ['Penicillin discovered','💊',1928],['Toyota Motor founded','🚗',1937],['Sony founded','📺',1946],
+      ['Bubble wrap invented','🫧',1957],['Shinkansen opens','🚄',1964],['Moon landing','🌕',1969],
+      ['First email sent','📧',1971],['Pac-Man released','👾',1980],['World Wide Web invented','🌐',1989],
+      ['Pokémon Red & Green (Japan)','⚡',1996],['Google founded','🔎',1998],['YouTube launched','▶️',2005],
+      ['First iPhone','📱',2007],['Instagram launched','📸',2010],
+      ["Gutenberg printing press", "🖨️", 1440, 1],
+      ["Columbus reaches the Americas", "⛵", 1492],
+      ["Magna Carta signed", "📜", 1215],
+      ["Shakespeare born", "🎭", 1564],
+      ["Newton's Principia published", "🍎", 1687],
+      ["US Declaration of Independence", "🇺🇸", 1776],
+      ["French Revolution begins", "🇫🇷", 1789],
+      ["Napoleon crowned emperor", "👑", 1804],
+      ["Battle of Waterloo", "⚔️", 1815],
+      ["Meiji Restoration", "🇯🇵", 1868],
+      ["First car patented (Benz)", "🚗", 1886],
+      ["Wright brothers first flight", "✈️", 1903],
+      ["World War I begins", "🪖", 1914],
+      ["World War II ends", "🕊️", 1945],
+      ["Indian independence", "🇮🇳", 1947],
+      ["Berlin Wall falls", "🧱", 1989],
+      ["Soviet Union dissolves", "☭", 1991],
+      ["First Tokyo Olympics", "🏅", 1964],
+      ["Alexander the Great dies", "🏺", -323],
+      ["Julius Caesar assassinated", "🗡️", -44],
+      ["Colosseum completed", "🏟️", 80],
+      ["Vesuvius buries Pompeii", "🌋", 79],
+      ["Western Roman Empire falls", "🏛️", 476],
+      ["The Tale of Genji written", "📖", 1008, 1],
+      ["Machu Picchu built", "⛰️", 1450, 1],
+      ["Fall of Constantinople", "🏰", 1453],
+      ["Mona Lisa begun", "🖼️", 1503, 1],
+      ["Mughal Empire founded", "🕌", 1526],
+      ["Edo period begins", "🏯", 1603],
+      ["First postage stamp (Penny Black)", "✉️", 1840],
+      ["Darwin's Origin of Species", "🐒", 1859],
+      ["Lincoln assassinated", "🎩", 1865],
+      ["Statue of Liberty dedicated", "🗽", 1886],
+      ["Tokyo Station opens", "🚉", 1914],
+      ["Great Kantō earthquake", "🌏", 1923],
+      ["Steamboat Willie (first Mickey cartoon)", "🐭", 1928],
+      ["First Godzilla film", "🦖", 1954],
+      ["Sputnik launched", "🛰️", 1957],
+      ["Barbie launched", "💃", 1959],
+      ["Beatles' first album", "🎸", 1963],
+      ["Sony Walkman released", "🎧", 1979],
+      ["Rubik's Cube invented", "🧩", 1974],
+      ["Super Mario Bros. released", "🍄", 1985],
+      ["Euro coins enter circulation", "💶", 2002],
+      ["Wikipedia launched", "📚", 2001],
+      ["Facebook launched", "👍", 2004],
+      ["Bitcoin launched", "₿", 2009],
+      ["ChatGPT launched", "🤖", 2022],
+      ["Netflix founded", "🎬", 1997],
+      ["Amazon founded", "📦", 1994],
+      ["Apple founded", "🍏", 1976],
+      ["Microsoft founded", "🪟", 1975],
+      ["Honda founded", "🏍️", 1948],
+      ["Tata Group founded", "🇮🇳", 1868],
+      ["First modern Olympics", "🏅", 1896],
+      ["First FIFA World Cup", "⚽", 1930],
+      ["First cricket Test match", "🏏", 1877],
+      ["First IPL season", "🏏", 2008],
+      ["First Indian feature film", "🎞️", 1913],
+      ["Instant ramen invented", "🍜", 1958],
+      ["First emoji set (Japan)", "😀", 1999],
+      ["KitKat launched", "🍫", 1935],
+      ["First Nintendo Game Boy", "🎮", 1989],
+      ["PlayStation launched", "🕹️", 1994]
+    ]
+  },
+  car: {
+    title:'Cars', emoji:'🏎️', desc:'Power, speed, size, seats, sales',
+    multi:true,
+    stats:{
+      hp:{label:'Horsepower',hi:'More ▲',lo:'Less ▼',fmt:v=>'~'+v.toLocaleString()+' hp',q:n=>`has more or less horsepower than the ${n}?`},
+      top:{label:'Top speed',hi:'Faster ▲',lo:'Slower ▼',fmt:v=>'~'+v+' km/h',q:n=>`is faster or slower (top speed) than the ${n}?`},
+      len:{label:'Length',hi:'Longer ▲',lo:'Shorter ▼',fmt:v=>v.toFixed(2)+' m',q:n=>`is longer or shorter than the ${n}?`},
+      kg:{label:'Weight',hi:'Heavier ▲',lo:'Lighter ▼',fmt:v=>'~'+v.toLocaleString()+' kg',q:n=>`is heavier or lighter than the ${n}?`},
+      seats:{label:'Seats',hi:'More ▲',lo:'Fewer ▼',fmt:v=>v+(v===1?' seat':' seats'),q:n=>`has more or fewer seats than the ${n}?`},
+      sold:{label:'Units ever sold',hi:'More ▲',lo:'Fewer ▼',fmt:v=>'~'+(v>=1e6?(v/1e6).toLocaleString()+' million':v.toLocaleString()),q:n=>`sold more or fewer units than the ${n}?`}
+    },
+    items:[
+      {n:'Peel P50',e:'🐞',s:{hp:4,top:61,len:1.37,kg:59,seats:1,sold:50}},
+      {n:'Ford Model T',e:'🎩',s:{hp:20,top:72,kg:540,sold:15000000}},
+      {n:'Original VW Beetle',e:'🐞',s:{hp:40,len:4.08,kg:800,seats:4,sold:21500000}},
+      {n:'Tata Nano',e:'🇮🇳',s:{hp:37,top:105,len:3.10,kg:600,seats:4,sold:275000}},
+      {n:'Smart Fortwo',e:'🔹',s:{hp:71,len:2.69,kg:900,seats:2}},
+      {n:'Maruti Suzuki Alto',e:'🚙',s:{hp:47,len:3.43,kg:760,seats:5,sold:4500000}},
+      {n:'Honda N-Box',e:'🇯🇵',s:{hp:58,len:3.40,kg:900,seats:4}},
+      {n:'Hyundai Creta',e:'🚙',s:{hp:113,len:4.33,kg:1250,seats:5}},
+      {n:'Mahindra Thar',e:'🛻',s:{hp:130,len:3.99,kg:1750,seats:4}},
+      {n:'Toyota Innova Crysta',e:'🚐',s:{hp:148,len:4.74,kg:1800,seats:8}},
+      {n:'Honda Civic',e:'🚗',s:{hp:158,top:200,len:4.67,kg:1300,seats:5,sold:27000000}},
+      {n:'Toyota Corolla',e:'🚗',s:{hp:169,len:4.63,kg:1350,seats:5,sold:50000000}},
+      {n:'Mazda MX-5 Miata',e:'🏁',s:{hp:181,len:3.92,kg:1060,seats:2,sold:1200000}},
+      {n:'Toyota bZ4X',e:'⚡',s:{hp:201,len:4.69,kg:1900,seats:5}},
+      {n:'Toyota Alphard',e:'🚐',s:{hp:247,len:5.00,kg:2100,seats:7}},
+      {n:'Toyota Land Cruiser 300',e:'🏜️',s:{hp:409,top:210,len:4.99,kg:2500,seats:7}},
+      {n:'Cadillac Escalade ESV',e:'🇺🇸',s:{hp:420,len:5.77,kg:2700,seats:8}},
+      {n:'Ford Mustang GT',e:'🐎',s:{hp:480,top:250,len:4.81,kg:1750,seats:4,sold:10000000}},
+      {n:'Rolls-Royce Phantom',e:'👑',s:{hp:563,top:250,len:5.76,kg:2560,seats:5}},
+      {n:'Nissan GT-R',e:'🇯🇵',s:{hp:565,top:315,len:4.71,kg:1750,seats:4}},
+      {n:'Porsche 911 Turbo S',e:'🏎️',s:{hp:640,top:330,len:4.54,kg:1640,seats:4}},
+      {n:'Lamborghini Aventador',e:'🐂',s:{hp:759,top:350,len:4.94,kg:1525,seats:2,sold:11500}},
+      {n:'Ferrari SF90 Stradale',e:'🐎',s:{hp:986,top:340,len:4.71,kg:1570,seats:2}},
+      {n:'Formula 1 car',e:'🏆',s:{hp:1000,top:360,len:5.60,kg:798,seats:1}},
+      {n:'GMC Hummer EV',e:'🦾',s:{hp:1000,len:5.51,kg:4100,seats:5}},
+      {n:'Tesla Model S Plaid',e:'⚡',s:{hp:1020,top:322,len:4.97,kg:2160,seats:5}},
+      {n:'Bugatti Chiron',e:'💎',s:{hp:1479,top:420,len:4.54,kg:1995,seats:2,sold:500}},
+      {n:'Rimac Nevera',e:'⚡',s:{hp:1914,top:412,len:4.75,kg:2300,seats:2,sold:150}},
+      {"n": "Maruti Suzuki Swift", "e": "🚗", "s": {"hp": 82, "len": 3.86, "kg": 900, "seats": 5}},
+      {"n": "Tata Nexon", "e": "🇮🇳", "s": {"hp": 118, "len": 3.99, "kg": 1250, "seats": 5}},
+      {"n": "Mahindra Scorpio-N", "e": "🛻", "s": {"hp": 200, "len": 4.66, "kg": 2000, "seats": 7}},
+      {"n": "Toyota Fortuner", "e": "🚙", "s": {"hp": 201, "len": 4.8, "kg": 2100, "seats": 7}},
+      {"n": "Toyota HiAce Commuter", "e": "🚐", "s": {"hp": 174, "len": 5.38, "kg": 2200, "seats": 14}},
+      {"n": "Toyota Yaris (hybrid)", "e": "🚗", "s": {"hp": 116, "len": 3.94, "kg": 1050, "seats": 5}},
+      {"n": "Nissan Leaf", "e": "🔌", "s": {"hp": 147, "len": 4.49, "kg": 1600, "seats": 5, "sold": 650000}},
+      {"n": "Toyota RAV4", "e": "🚙", "s": {"hp": 203, "len": 4.6, "kg": 1600, "seats": 5}},
+      {"n": "Honda CR-V", "e": "🚙", "s": {"hp": 190, "len": 4.69, "kg": 1550, "seats": 5}},
+      {"n": "Ford F-150", "e": "🛻", "s": {"hp": 400, "len": 5.89, "kg": 2200, "seats": 6}},
+      {"n": "Classic Mini (1959)", "e": "🇬🇧", "s": {"hp": 34, "len": 3.05, "kg": 620, "seats": 4, "sold": 5300000}},
+      {"n": "Fiat 500 (1957)", "e": "🇮🇹", "s": {"hp": 13, "len": 2.97, "kg": 470, "seats": 4, "sold": 3900000}},
+      {"n": "Mercedes G-Class", "e": "🇩🇪", "s": {"hp": 416, "len": 4.82, "kg": 2560, "seats": 5}},
+      {"n": "Range Rover", "e": "🇬🇧", "s": {"hp": 395, "len": 5.05, "kg": 2500, "seats": 5}},
+      {"n": "McLaren F1", "e": "🏎️", "s": {"hp": 618, "top": 386, "len": 4.29, "kg": 1138, "seats": 3, "sold": 106}},
+      {"n": "Toyota 2000GT", "e": "🇯🇵", "s": {"hp": 150, "len": 4.18, "kg": 1120, "seats": 2, "sold": 351}},
+      {"n": "Lexus LFA", "e": "🇯🇵", "s": {"hp": 553, "top": 325, "len": 4.51, "kg": 1480, "seats": 2, "sold": 500}},
+      {"n": "Honda NSX (1990)", "e": "🇯🇵", "s": {"hp": 270, "top": 270, "len": 4.43, "kg": 1370, "seats": 2}},
+      {"n": "Mazda RX-7 (FD)", "e": "🇯🇵", "s": {"hp": 255, "len": 4.29, "kg": 1260, "seats": 2}},
+      {"n": "Suzuki Jimny", "e": "🏕️", "s": {"hp": 101, "len": 3.48, "kg": 1100, "seats": 4}},
+      {"n": "Bajaj Qute", "e": "🛺", "s": {"hp": 11, "len": 2.75, "kg": 450, "seats": 4}},
+      {"n": "Ferrari F40", "e": "🐎", "s": {"hp": 471, "top": 324, "len": 4.36, "kg": 1100, "seats": 2, "sold": 1315}},
+      {"n": "Bugatti Veyron", "e": "💎", "s": {"hp": 987, "top": 408, "len": 4.46, "kg": 1888, "seats": 2, "sold": 450}},
+      {"n": "Volkswagen Golf", "e": "🇩🇪", "s": {"hp": 128, "len": 4.28, "kg": 1300, "seats": 5, "sold": 37000000}}
+    ]
+  },
+  football: {
+    title:"Football", emoji:"⚽", desc:"Internationals, Premier League & La Liga",
+    multi:true,
+    stats:{
+      wc:{label:"Men's World Cups won",hi:'More ▲',lo:'Fewer ▼',fmt:v=>v+(v===1?' title':' titles'),q:n=>`has won more or fewer men's World Cups than ${n}?`},
+      cont:{label:'Continental titles (Euro, Copa América, AFCON…)',hi:'More ▲',lo:'Fewer ▼',fmt:v=>v+(v===1?' title':' titles'),q:n=>`has won more or fewer continental titles than ${n}?`},
+      wwc:{label:"Women's World Cups won",hi:'More ▲',lo:'Fewer ▼',fmt:v=>v+(v===1?' title':' titles'),q:n=>`has won more or fewer women's World Cups than ${n}?`},
+      lt:{label:'League titles',hi:'More ▲',lo:'Fewer ▼',fmt:v=>v+(v===1?' title':' titles'),q:n=>`has won more or fewer league titles than ${n}?`},
+      cl:{label:'Continental club titles (Champions League, Libertadores…)',hi:'More ▲',lo:'Fewer ▼',fmt:v=>v+(v===1?' title':' titles'),q:n=>`has won more or fewer continental club titles than ${n}?`}
+    },
+    items:[
+      {"n": "Brazil", "e": "🇧🇷", "s": {"wc": 5, "cont": 9, "wwc": 0}},
+      {"n": "Germany", "e": "🇩🇪", "s": {"wc": 4, "cont": 3, "wwc": 2}},
+      {"n": "Italy", "e": "🇮🇹", "s": {"wc": 4, "cont": 2}},
+      {"n": "Argentina", "e": "🇦🇷", "s": {"wc": 3, "cont": 16}},
+      {"n": "France", "e": "🇫🇷", "s": {"wc": 2, "cont": 2, "wwc": 0}},
+      {"n": "Uruguay", "e": "🇺🇾", "s": {"wc": 2, "cont": 15}},
+      {"n": "Spain", "e": "🇪🇸", "s": {"wc": 2, "cont": 4, "wwc": 1}},
+      {"n": "England", "e": "🏴󠁧󠁢󠁥󠁮󠁧󠁿", "s": {"wc": 1, "cont": 0, "wwc": 0}},
+      {"n": "Netherlands", "e": "🇳🇱", "s": {"wc": 0, "cont": 1, "wwc": 0}},
+      {"n": "Portugal", "e": "🇵🇹", "s": {"wc": 0, "cont": 1}},
+      {"n": "Denmark", "e": "🇩🇰", "s": {"wc": 0, "cont": 1}},
+      {"n": "Greece", "e": "🇬🇷", "s": {"wc": 0, "cont": 1}},
+      {"n": "Czechia", "e": "🇨🇿", "s": {"wc": 0, "cont": 1}},
+      {"n": "Belgium", "e": "🇧🇪", "s": {"wc": 0, "cont": 0}},
+      {"n": "Croatia", "e": "🇭🇷", "s": {"wc": 0, "cont": 0}},
+      {"n": "Chile", "e": "🇨🇱", "s": {"wc": 0, "cont": 2}},
+      {"n": "Colombia", "e": "🇨🇴", "s": {"wc": 0, "cont": 1}},
+      {"n": "Paraguay", "e": "🇵🇾", "s": {"wc": 0, "cont": 2}},
+      {"n": "Peru", "e": "🇵🇪", "s": {"wc": 0, "cont": 2}},
+      {"n": "Bolivia", "e": "🇧🇴", "s": {"wc": 0, "cont": 1}},
+      {"n": "Mexico", "e": "🇲🇽", "s": {"wc": 0, "cont": 10}},
+      {"n": "USA", "e": "🇺🇸", "s": {"wc": 0, "cont": 7, "wwc": 4}},
+      {"n": "Canada", "e": "🇨🇦", "s": {"wc": 0, "cont": 2}},
+      {"n": "Costa Rica", "e": "🇨🇷", "s": {"wc": 0, "cont": 3}},
+      {"n": "Egypt", "e": "🇪🇬", "s": {"wc": 0, "cont": 7}},
+      {"n": "Cameroon", "e": "🇨🇲", "s": {"wc": 0, "cont": 5}},
+      {"n": "Ghana", "e": "🇬🇭", "s": {"wc": 0, "cont": 4}},
+      {"n": "Nigeria", "e": "🇳🇬", "s": {"wc": 0, "cont": 3}},
+      {"n": "Côte d'Ivoire", "e": "🇨🇮", "s": {"wc": 0, "cont": 3}},
+      {"n": "Algeria", "e": "🇩🇿", "s": {"wc": 0, "cont": 2}},
+      {"n": "Morocco", "e": "🇲🇦", "s": {"wc": 0, "cont": 2}},
+      {"n": "Senegal", "e": "🇸🇳", "s": {"wc": 0, "cont": 1}},
+      {"n": "Tunisia", "e": "🇹🇳", "s": {"wc": 0, "cont": 1}},
+      {"n": "South Africa", "e": "🇿🇦", "s": {"wc": 0, "cont": 1}},
+      {"n": "Zambia", "e": "🇿🇲", "s": {"wc": 0, "cont": 1}},
+      {"n": "Japan", "e": "🇯🇵", "s": {"wc": 0, "cont": 4, "wwc": 1}},
+      {"n": "Saudi Arabia", "e": "🇸🇦", "s": {"wc": 0, "cont": 3}},
+      {"n": "Iran", "e": "🇮🇷", "s": {"wc": 0, "cont": 3}},
+      {"n": "South Korea", "e": "🇰🇷", "s": {"wc": 0, "cont": 2}},
+      {"n": "Qatar", "e": "🇶🇦", "s": {"wc": 0, "cont": 2}},
+      {"n": "Iraq", "e": "🇮🇶", "s": {"wc": 0, "cont": 1}},
+      {"n": "New Zealand", "e": "🇳🇿", "s": {"wc": 0, "cont": 6}},
+      {"n": "Norway", "e": "🇳🇴", "s": {"wc": 0, "cont": 0, "wwc": 1}},
+      {"n": "Sweden", "e": "🇸🇪", "s": {"wc": 0, "cont": 0, "wwc": 0}},
+      {"n": "Manchester United", "e": "🏴󠁧󠁢󠁥󠁮󠁧󠁿", "s": {"lt": 20, "cl": 3}},
+      {"n": "Liverpool", "e": "🏴󠁧󠁢󠁥󠁮󠁧󠁿", "s": {"lt": 20, "cl": 6}},
+      {"n": "Arsenal", "e": "🏴󠁧󠁢󠁥󠁮󠁧󠁿", "s": {"lt": 14, "cl": 0}},
+      {"n": "Manchester City", "e": "🏴󠁧󠁢󠁥󠁮󠁧󠁿", "s": {"lt": 10, "cl": 1}},
+      {"n": "Everton", "e": "🏴󠁧󠁢󠁥󠁮󠁧󠁿", "s": {"lt": 9, "cl": 0}},
+      {"n": "Aston Villa", "e": "🏴󠁧󠁢󠁥󠁮󠁧󠁿", "s": {"lt": 7, "cl": 1}},
+      {"n": "Chelsea", "e": "🏴󠁧󠁢󠁥󠁮󠁧󠁿", "s": {"lt": 6, "cl": 2}},
+      {"n": "Sunderland", "e": "🏴󠁧󠁢󠁥󠁮󠁧󠁿", "s": {"lt": 6, "cl": 0}},
+      {"n": "Newcastle United", "e": "🏴󠁧󠁢󠁥󠁮󠁧󠁿", "s": {"lt": 4, "cl": 0}},
+      {"n": "Tottenham Hotspur", "e": "🏴󠁧󠁢󠁥󠁮󠁧󠁿", "s": {"lt": 2, "cl": 0}},
+      {"n": "Nottingham Forest", "e": "🏴󠁧󠁢󠁥󠁮󠁧󠁿", "s": {"lt": 1, "cl": 2}},
+      {"n": "Leicester City", "e": "🏴󠁧󠁢󠁥󠁮󠁧󠁿", "s": {"lt": 1, "cl": 0}},
+      {"n": "Blackburn Rovers", "e": "🏴󠁧󠁢󠁥󠁮󠁧󠁿", "s": {"lt": 3, "cl": 0}},
+      {"n": "Leeds United", "e": "🏴󠁧󠁢󠁥󠁮󠁧󠁿", "s": {"lt": 3, "cl": 0}},
+      {"n": "Wolves", "e": "🏴󠁧󠁢󠁥󠁮󠁧󠁿", "s": {"lt": 3, "cl": 0}},
+      {"n": "Real Madrid", "e": "🇪🇸", "s": {"lt": 36, "cl": 15}},
+      {"n": "Barcelona", "e": "🇪🇸", "s": {"lt": 29, "cl": 5}},
+      {"n": "Atlético Madrid", "e": "🇪🇸", "s": {"lt": 11, "cl": 0}},
+      {"n": "Athletic Club", "e": "🇪🇸", "s": {"lt": 8, "cl": 0}},
+      {"n": "Valencia", "e": "🇪🇸", "s": {"lt": 6, "cl": 0}},
+      {"n": "Real Sociedad", "e": "🇪🇸", "s": {"lt": 2, "cl": 0}},
+      {"n": "Sevilla", "e": "🇪🇸", "s": {"lt": 1, "cl": 0}},
+      {"n": "Real Betis", "e": "🇪🇸", "s": {"lt": 1, "cl": 0}},
+      {"n": "Deportivo La Coruña", "e": "🇪🇸", "s": {"lt": 1, "cl": 0}},
+      {"n": "Sheffield Wednesday", "e": "🏴󠁧󠁢󠁥󠁮󠁧󠁿", "s": {"lt": 4, "cl": 0}},
+      {"n": "Huddersfield Town", "e": "🏴󠁧󠁢󠁥󠁮󠁧󠁿", "s": {"lt": 3, "cl": 0}},
+      {"n": "Preston North End", "e": "🏴󠁧󠁢󠁥󠁮󠁧󠁿", "s": {"lt": 2, "cl": 0}},
+      {"n": "Portsmouth", "e": "🏴󠁧󠁢󠁥󠁮󠁧󠁿", "s": {"lt": 2, "cl": 0}},
+      {"n": "Burnley", "e": "🏴󠁧󠁢󠁥󠁮󠁧󠁿", "s": {"lt": 2, "cl": 0}},
+      {"n": "Derby County", "e": "🏴󠁧󠁢󠁥󠁮󠁧󠁿", "s": {"lt": 2, "cl": 0}},
+      {"n": "Ipswich Town", "e": "🏴󠁧󠁢󠁥󠁮󠁧󠁿", "s": {"lt": 1, "cl": 0}},
+      {"n": "West Bromwich Albion", "e": "🏴󠁧󠁢󠁥󠁮󠁧󠁿", "s": {"lt": 1, "cl": 0}},
+      {"n": "Sheffield United", "e": "🏴󠁧󠁢󠁥󠁮󠁧󠁿", "s": {"lt": 1, "cl": 0}}
+    ]
+  },
+  cricket: {
+    title:"Cricket", emoji:"🏏", desc:"International teams: World Cups & trophies",
+    multi:true,
+    stats:{
+      odi:{label:"Men's ODI World Cups",hi:'More ▲',lo:'Fewer ▼',fmt:v=>v+(v===1?' title':' titles'),q:n=>`has won more or fewer men's ODI World Cups than ${n}?`},
+      t20:{label:"Men's T20 World Cups",hi:'More ▲',lo:'Fewer ▼',fmt:v=>v+(v===1?' title':' titles'),q:n=>`has won more or fewer men's T20 World Cups than ${n}?`},
+      ct:{label:'Champions Trophies',hi:'More ▲',lo:'Fewer ▼',fmt:v=>v+(v===1?' title':' titles'),q:n=>`has won more or fewer Champions Trophies than ${n}?`},
+      wtc:{label:'World Test Championships',hi:'More ▲',lo:'Fewer ▼',fmt:v=>v+(v===1?' title':' titles'),q:n=>`has won more or fewer World Test Championships than ${n}?`},
+      wodi:{label:"Women's ODI World Cups",hi:'More ▲',lo:'Fewer ▼',fmt:v=>v+(v===1?' title':' titles'),q:n=>`has won more or fewer women's ODI World Cups than ${n}?`},
+      test:{label:'Year they got Test status',hi:'Later ▲',lo:'Earlier ▼',fmt:v=>String(v),q:n=>`got Test status later or earlier than ${n}?`},
+      wt20:{label:"Women's T20 World Cups",hi:'More ▲',lo:'Fewer ▼',fmt:v=>v+(v===1?' title':' titles'),q:n=>`has won more or fewer women's T20 World Cups than ${n}?`},
+    },
+    items:[
+      {"n": "Australia", "e": "🇦🇺", "s": {"test": 1877, "odi": 6, "t20": 1, "ct": 2, "wtc": 1, "wodi": 7, "wt20": 7}},
+      {"n": "India", "e": "🇮🇳", "s": {"test": 1932, "odi": 2, "t20": 3, "ct": 3, "wtc": 0, "wodi": 1, "wt20": 0}},
+      {"n": "West Indies", "e": "𾓙", "s": {"test": 1928, "odi": 2, "t20": 2, "ct": 1, "wtc": 0, "wodi": 0, "wt20": 1}},
+      {"n": "England", "e": "🏴󠁧󠁢󠁥󠁮󠁧󠁿", "s": {"test": 1877, "odi": 1, "t20": 2, "ct": 0, "wtc": 0, "wodi": 4, "wt20": 1}},
+      {"n": "Pakistan", "e": "🇵🇰", "s": {"test": 1952, "odi": 1, "t20": 1, "ct": 1, "wtc": 0, "wodi": 0, "wt20": 0}},
+      {"n": "Sri Lanka", "e": "🇱🇰", "s": {"test": 1982, "odi": 1, "t20": 1, "ct": 1, "wtc": 0, "wodi": 0, "wt20": 0}},
+      {"n": "New Zealand", "e": "🇳🇿", "s": {"test": 1930, "odi": 0, "t20": 0, "ct": 1, "wtc": 1, "wodi": 1, "wt20": 1}},
+      {"n": "South Africa", "e": "🇿🇦", "s": {"test": 1889, "odi": 0, "t20": 0, "ct": 1, "wtc": 1, "wodi": 0, "wt20": 0}},
+      {"n": "Bangladesh", "e": "🇧🇩", "s": {"test": 2000, "odi": 0, "t20": 0, "ct": 0, "wtc": 0}},
+      {"n": "Afghanistan", "e": "🇦🇫", "s": {"test": 2018, "odi": 0, "t20": 0, "ct": 0}},
+      {"n": "Ireland", "e": "🇮🇪", "s": {"test": 2018, "odi": 0, "t20": 0}},
+      {"n": "Zimbabwe", "e": "🇿🇼", "s": {"test": 1992, "odi": 0, "t20": 0, "ct": 0}}
+    ]
+  },
+  food: {
+    title:'Food Calories', emoji:'🍔', desc:'Which has more calories?',
+    hi:'More ▲', lo:'Fewer ▼', q:n=>`has more or fewer calories than ${n}?`, sub:'',
+    fmt:v=>'~'+v+' kcal', from:'zero',
+    items:[
+      ['Black coffee (1 cup)','☕',2],['Cucumber (whole)','🥒',45],['Salmon nigiri (1 piece)','🍣',60],
+      ['Boiled egg','🥚',78],['Apple (medium)','🍎',95],['Banana (medium)','🍌',105],
+      ['Olive oil (1 tablespoon)','🫒',120],['Can of Coke (355 ml)','🥤',140],['Glass of whole milk','🥛',150],
+      ['Gulab jamun (1 piece)','🟤',150],['Almonds (a handful, 28 g)','🌰',165],['Salmon onigiri','🍙',180],
+      ['Glazed donut','🍩',190],['Cooked white rice (1 cup)','🍚',205],['KitKat (4 fingers)','🍫',210],
+      ['Butter croissant','🥐',230],['Avocado (whole)','🥑',240],['Snickers bar','🍫',250],
+      ['Samosa (1 large)','🥟',260],['Plain naan','🫓',260],['Pepperoni pizza (1 slice)','🍕',300],
+      ['McDonald\'s medium fries','🍟',320],['Bubble tea (medium, with pearls)','🧋',350],
+      ['Starbucks Grande Caramel Frappuccino','🥤',380],['Chicken biryani (1 plate)','🍛',500],
+      ['Big Mac','🍔',590],['Burger King Whopper','🍔',670],['Tonkotsu ramen (1 bowl)','🍜',700],
+      ["Daifuku mochi", "🍡", 120],
+      ["Takoyaki (6 pieces)", "🐙", 250],
+      ["Gyoza (6 pieces)", "🥟", 250],
+      ["Edamame (1 cup)", "🫛", 190],
+      ["Miso soup (1 bowl)", "🥣", 40],
+      ["Shrimp tempura (1 piece)", "🍤", 60],
+      ["Katsu curry (1 plate)", "🍛", 900],
+      ["Okonomiyaki", "🥞", 550],
+      ["Starbucks Grande Matcha Latte", "🍵", 240],
+      ["Melon pan", "🍈", 380],
+      ["Dorayaki", "🥮", 220],
+      ["Masala dosa", "🫓", 390],
+      ["Idli (1 piece)", "⚪", 40],
+      ["Vada pav", "🍔", 290],
+      ["Butter chicken (1 bowl)", "🍗", 450],
+      ["Chole bhature (1 plate)", "🍽️", 600],
+      ["Masala chai (1 cup, sweet)", "☕", 100],
+      ["Sweet lassi (1 glass)", "🥛", 260],
+      ["Chapati (1)", "🫓", 120],
+      ["Aloo paratha", "🫓", 300],
+      ["Rasgulla (1 piece)", "⚪", 120],
+      ["Plain bagel", "🥯", 270],
+      ["Hot dog (with bun)", "🌭", 300],
+      ["McDonald's Cheeseburger", "🍔", 300],
+      ["Chicken McNuggets (6)", "🍗", 250],
+      ["Oreo cookies (3)", "🍪", 160],
+      ["Orange juice (1 glass)", "🧃", 110],
+      ["Red Bull (250 ml can)", "🥫", 110],
+      ["Cheesecake (1 slice)", "🍰", 400],
+      ["Brownie", "🟫", 230],
+      ["Peanut butter (2 tbsp)", "🥜", 190],
+      ["Butter (1 tbsp)", "🧈", 100],
+      ["Sugar (1 teaspoon)", "🍬", 16],
+      ["Honey (1 tbsp)", "🍯", 64],
+      ["Watermelon (1 cup)", "🍉", 46],
+      ["Orange", "🍊", 62],
+      ["Grapes (1 cup)", "🍇", 104],
+      ["Strawberries (1 cup)", "🍓", 50],
+      ["Mango (whole)", "🥭", 200],
+      ["Carrot", "🥕", 25],
+      ["Baked potato (medium)", "🥔", 160],
+      ["Broccoli (1 cup)", "🥦", 30],
+      ["Chicken breast (100 g, cooked)", "🍗", 165],
+      ["Salmon fillet (100 g)", "🐟", 208],
+      ["Pringles (whole can)", "🥫", 900],
+      ["Potato chips (small bag)", "🥔", 150],
+      ["Ice cream (1 scoop)", "🍨", 140],
+      ["Magnum Classic bar", "🍦", 240],
+      ["Nutella (2 tbsp)", "🍫", 200],
+      ["Cappuccino (medium)", "☕", 120],
+      ["Subway 6-inch Italian BMT", "🥖", 410],
+      ["Popcorn (1 cup, plain)", "🍿", 30]
+    ]
+  }
+};
+
+const $ = id => document.getElementById(id);
+const store = {
+  get(k){ try{ return JSON.parse(localStorage.getItem('hol_'+k)) }catch(e){ return null } },
+  set(k,v){ try{ localStorage.setItem('hol_'+k, JSON.stringify(v)) }catch(e){} }
+};
+const bests = store.get('bests') || {};
+
+let cat, catKey, deck, left, right, score, locked;
+
+function show(id){ document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('on', s.id===id)); }
+
+function renderHome(){
+  $('cats').innerHTML = Object.entries(CATS).map(([k,c]) => `
+    <button class="cat" data-k="${k}">
+      <span class="e">${c.emoji}</span>
+      <span><b>${c.title}</b><small>${c.desc}</small></span>
+      ${bests[k] ? `<span class="best">🏆 ${bests[k]}</span>` : ''}
+    </button>`).join('');
+  document.querySelectorAll('.cat').forEach(b => b.onclick = () => start(b.dataset.k));
+}
+
+const toItem = a => Array.isArray(a) ? ({ n:a[0], e:a[1], v:a[2], c:a[3] }) : a;
+let stat = null;
+const M = () => cat.multi ? cat.stats[stat] : cat;
+const val = it => cat.multi ? it.s[stat] : it.v;
+function pickStat(){
+  if(!cat.multi) return;
+  const common = Object.keys(cat.stats).filter(k => left.s[k]!=null && right.s[k]!=null);
+  let opts = common.filter(k => left.s[k] !== right.s[k]);
+  if(!opts.length) opts = common;
+  const fresh = opts.filter(k => k !== stat);
+  const pool = fresh.length ? fresh : opts;
+  stat = pool[Math.random()*pool.length|0];
+}
+function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.random()*(i+1)|0; [a[i],a[j]]=[a[j],a[i]] } return a; }
+function shares(a,b){ return Object.keys(a.s).some(k => b.s[k]!=null); }
+function draw(){
+  for(let tries=0; tries<5000; tries++){
+    if(!deck.length) deck = shuffle(cat.items.map(toItem));
+    const it = deck.pop();
+    if(left && it.n === left.n) continue;
+    if(left && cat.multi && !shares(left, it)) continue;
+    if(left && !cat.multi && it.v === left.v) continue;
+    return it;
+  }
+  return deck.pop() || toItem(cat.items[0]);
+}
+
+function start(k){
+  catKey = k; cat = CATS[k]; deck = []; left = null; right = null; score = 0; history = []; stat = null;
+  left = draw(); right = draw();
+  $('score').textContent = 0; $('best').textContent = bests[k] || 0;
+  paint(); show('game');
+}
+
+function paint(){
+  locked = false; pickStat(); const m = M();
+  $('hiBtn').textContent = m.hi; $('loBtn').textContent = m.lo;
+  $('top').className = 'card'; $('bot').className = 'card slide-in'; $('vs').className = 'vs'; $('vs').textContent = 'VS';
+  $('tEmo').textContent = left.e; $('tName').textContent = left.n;
+  $('tSub').textContent = cat.multi ? m.label : cat.sub; $('tVal').textContent = m.fmt(val(left), left);
+  $('bEmo').textContent = right.e; $('bName').textContent = right.n;
+  $('bVal').textContent = ''; $('bVal').style.display = 'none';
+  $('bQ').textContent = m.q(left.n); $('bQ').style.display = '';
+  $('hiBtn').disabled = $('loBtn').disabled = false;
+  document.querySelector('.btns').style.display = '';
+}
+
+let history = [];
+function guess(higher){
+  if(locked) return; locked = true;
+  $('hiBtn').disabled = $('loBtn').disabled = true;
+  const L = val(left), R = val(right), m = M();
+  const ok = R === L || (higher ? R > L : R < L);
+  history.push(ok);
+  document.querySelector('.btns').style.display = 'none'; $('bQ').style.display = 'none';
+  const el = $('bVal'); el.style.display = '';
+  const from = cat.from === 'left' ? L : 0, to = R, t0 = performance.now(), dur = 750;
+  const isInt = Number.isInteger(to), dec = isInt ? 1 : (cat.multi && stat==='len' ? 100 : 10);
+  (function step(t){
+    const p = Math.min(1,(t-t0)/dur), e = 1-Math.pow(1-p,3);
+    let v = from + (to-from)*e; v = p<1 ? Math.round(v*dec)/dec : to;
+    el.textContent = m.fmt(v, right);
+    if(p<1) requestAnimationFrame(step); else finish(ok);
+  })(t0);
+}
+
+function finish(ok){
+  $('bot').classList.add(ok?'good':'bad');
+  $('vs').classList.add(ok?'good':'bad'); $('vs').textContent = ok ? '✓' : '✗';
+  if(navigator.vibrate) try{ navigator.vibrate(ok?20:[60,40,60]) }catch(e){}
+  if(ok){
+    score++; $('score').textContent = score; $('score').classList.remove('pop'); void $('score').offsetWidth; $('score').classList.add('pop');
+    if(score > (bests[catKey]||0)) $('best').textContent = score;
+    const msgs = {3:'🔥 On fire!',5:'⚡ 5 streak!',10:'🧠 Genius!',15:'🚀 Unstoppable',20:'👑 Legend',30:'🤯 Are you cheating?'};
+    if(msgs[score]) toast(msgs[score]);
+    setTimeout(()=>{ left = right; right = draw(); paint(); }, 900);
+  } else {
+    setTimeout(gameOver, 1100);
+  }
+}
+
+function toast(t){ const el=$('toast'); el.textContent=t; el.classList.add('on'); setTimeout(()=>el.classList.remove('on'),1100); }
+
+function verdict(s){
+  return s>=20?'Absolute legend 👑': s>=12?'Big brain energy 🧠': s>=7?'Seriously good 🔥': s>=3?'Not bad! 👍': s>=1?'Warming up… 😅':'Ouch. Run it back 💀';
+}
+function gridStr(){
+  const g = history.slice(-12).map(o=>o?'🟩':'🟥').join('');
+  return (history.length>12?'…':'') + g;
+}
+
+function gameOver(){
+  const prev = bests[catKey]||0, nb = score > prev;
+  if(nb){ bests[catKey] = score; store.set('bests', bests); }
+  $('oScore').textContent = score; $('oVerdict').textContent = verdict(score);
+  $('oBest').textContent = nb && score>0 ? '🏆 New personal best!' : (prev ? `Best: ${prev}` : '');
+  $('oGrid').textContent = gridStr();
+  const m = M(), lbl = cat.multi ? ` <small>(${m.label})</small>` : '';
+  $('oReveal').innerHTML = `<b>${right.n}</b> ${right.e}: <b>${m.fmt(val(right),right)}</b>${lbl}<br>vs <b>${left.n}</b> ${left.e}: <b>${m.fmt(val(left),left)}</b>`;
+  $('copybox').style.display='none'; $('shareBtn').textContent='Copy result to share';
+  show('over');
+}
+
+function shareText(){
+  return `${cat.emoji} Higher or Lower: ${cat.title}\nI got a streak of ${score}! ${verdict(score)}\n${gridStr()}\nCan you beat me?` + (/^https?:/.test(location.href) && !/claude\.ai|claudeusercontent/.test(location.href) ? `\n${location.origin+location.pathname}` : '');
+}
+$('shareBtn').onclick = async () => {
+  const txt = shareText();
+  try{ await navigator.clipboard.writeText(txt); $('shareBtn').textContent = '✓ Copied! Paste it anywhere'; }
+  catch(e){ const b=$('copybox'); b.value=txt; b.style.display='block'; b.select(); $('shareBtn').textContent='Copy the text below'; }
+};
+
+$('hiBtn').onclick = () => guess(true);
+$('loBtn').onclick = () => guess(false);
+$('quit').onclick = () => { renderHome(); show('home'); };
+$('againBtn').onclick = () => start(catKey);
+$('homeBtn').onclick = () => { renderHome(); show('home'); };
+document.addEventListener('keydown', e => {
+  if(!$('game').classList.contains('on')) return;
+  if(e.key==='ArrowUp') guess(true); if(e.key==='ArrowDown') guess(false);
+});
+renderHome();
+</script>
+</body>
+</html>
